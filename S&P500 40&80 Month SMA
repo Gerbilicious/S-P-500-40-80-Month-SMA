@@ -1,0 +1,39 @@
+import yfinance as yf
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
+
+# Fetch historical data for S&P 500 index from Yahoo Finance
+data = yf.download('^GSPC', period='max', progress=False)
+
+# Convert the data to monthly frequency
+monthly_data = data['Close'].resample('M').last()
+
+# Calculate the simple moving averages
+smavg_40 = monthly_data.rolling(window=40).mean()
+smavg_80 = monthly_data.rolling(window=80).mean()
+
+# Plot the monthly close prices and moving averages
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.semilogy(monthly_data.index, monthly_data, label='S&P 500 Index')
+ax.semilogy(smavg_40.index, smavg_40, label='SMAVG 40 (Monthly Close)', color='red')
+ax.semilogy(smavg_80.index, smavg_80, label='SMAVG 80 (Monthly Close)', color='green')
+
+plt.title('S&P 500 Index with 40-Month SMAVG and 80-Month SMAVG (Log Scale)')
+plt.xlabel('Time')
+plt.ylabel('S&P 500 Index')
+
+# Format y-axis labels as dollar values without the "$" sign
+def y_format(value, _):
+    value = int(value)
+    return f'{value:,}'
+
+ax.yaxis.set_major_formatter(FuncFormatter(y_format))
+
+plt.legend()
+plt.grid(True)
+
+# Adjust x-axis limits to show the entire historical period
+plt.xlim(monthly_data.index[0], monthly_data.index[-1])
+
+plt.show()
